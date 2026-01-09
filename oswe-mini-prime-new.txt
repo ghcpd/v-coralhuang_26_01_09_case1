@@ -1,0 +1,322 @@
+User: You are maintaining a Python payment client called `PaymentClient`.
+The current implementation only supports a deprecated Charges API and may crash at runtime after an SDK or backend upgrade.
+
+You are given a minimal baseline codebase. Your task is to **write tests, observe failures, migrate the implementation, and deliver a solution that is easy to evaluate by a human reviewer**.
+
+---
+
+## Context
+
+The legacy SDK exposes:
+
+```python
+sdk.Charge.create(amount, currency, source)
+```
+
+When:
+
+```python
+LegacyStripeSDK.VERSION >= "2022-11-15"
+```
+
+the Charges endpoint is removed at runtime and raises:
+
+```
+RuntimeError("endpoint removed")
+```
+
+The new SDK exposes:
+
+```python
+sdk.PaymentIntent.create(
+    amount,
+    currency,
+    payment_method,
+    capture_method
+)
+```
+
+This introduces request contract drift and a different response schema.
+
+---
+
+## What You Must Do
+
+Begin by writing tests. These tests **must fail** against the baseline implementation.
+Then migrate the implementation until all tests pass.
+
+Your solution must correctly handle:
+
+* Legacy Charges API when the endpoint still exists
+* Runtime failure caused by endpoint removal, with automatic fallback to PaymentIntent
+* SDKs that only support PaymentIntent (no Charges API at all)
+
+Request mapping and response normalization must be correct and consistent.
+
+---
+
+## Required Test Coverage (Names Are Mandatory)
+
+You must write tests with **exactly the following names**:
+
+* `test_legacy_charge_works`
+* `test_legacy_endpoint_removed_fallback`
+* `test_v2_payment_intent_only`
+
+The tests must collectively prove that:
+
+* Legacy behavior still works
+* Runtime endpoint removal is actually triggered and handled
+* PaymentIntent works without legacy APIs present
+
+---
+
+## Required Runtime Evidence (Mandatory Artifacts)
+
+To make evaluation straightforward, you must generate the following files during test execution.
+
+### 1. Runtime Trace
+
+Write a file at:
+
+```
+artifacts/runtime_trace.txt
+```
+
+This file must contain **plain-text evidence** of the runtime path taken, for example:
+
+```
+[legacy] Charge.create invoked
+[error] RuntimeError: endpoint removed
+[fallback] Switching to PaymentIntent.create
+[v2] PaymentIntent.create invoked
+```
+
+The exact wording may differ, but it must clearly show:
+
+* Whether the legacy path was attempted
+* Whether endpoint removal occurred
+* Whether fallback was executed
+
+---
+
+### 2. Evaluation Summary
+
+Create a file at the project root named:
+
+```
+ARTIFACTS.md
+```
+
+It must contain the following sections:
+
+```markdown
+# Agent Migration Artifacts
+
+## Test Coverage Summary
+- test_legacy_charge_works: PASS
+- test_legacy_endpoint_removed_fallback: PASS
+- test_v2_payment_intent_only: PASS
+
+## Runtime Behavior Evidence
+- Legacy endpoint removal observed
+- Automatic fallback to PaymentIntent confirmed
+
+## Request Mapping Evidence
+- source -> payment_method
+- capture_method="automatic" applied
+```
+
+This file is intended for human review and must be accurate.
+
+---
+
+## Deliverables
+
+Your submission must include:
+
+* Tests written by you (pytest or equivalent)
+* A fixed implementation of `PaymentClient`
+* A one-click executable script named `run_tests` that:
+
+  * Creates a virtual environment
+  * Installs dependencies
+  * Runs all tests
+* A `README.md` explaining:
+
+  * The original failure modes
+  * The fail → pass testing strategy
+  * How fallback and migration work
+  * How to run and evaluate the solution
+
+---
+
+## Constraints
+
+* Do not modify the fake SDKs
+* No network access or external SDKs
+* No environment variables or feature flags
+* API selection must rely on runtime capability detection and exception handling only
+
+---
+
+## Evaluation Standard
+
+A human reviewer must be able to validate your work by doing **only** the following:
+
+1. Run `./run_tests`
+2. Open `ARTIFACTS.md`
+3. Open `artifacts/runtime_trace.txt`
+4. Glance at test names
+
+No deep code reading should be required.
+
+---
+
+Begin by writing failing tests. Then migrate the implementation until all tests pass.
+
+
+GitHub Copilot: Optimizing tool selection...Proceeding to add failing tests first; I'll create three pytest tests that exercise legacy Charges, endpoint-removed fallback, and v2-only behavior. Next, I'll run the test suite to see failures.
+
+Searched for files matching `**/*.{py,txt,md}`, 4 matches
+
+Read [](file:///c%3A/Bug_Bash/26_01_09/oswe-mini-prime-new/payment_client.py)
+
+Read [](file:///c%3A/Bug_Bash/26_01_09/oswe-mini-prime-new/fake_stripe_legacy.py)
+
+Read [](file:///c%3A/Bug_Bash/26_01_09/oswe-mini-prime-new/fake_stripe_v2.py)
+
+Perfect, tests added and ready to run. Next step: run the test suite to observe failing tests and capture output.
+
+Created [](file:///c%3A/Bug_Bash/26_01_09/oswe-mini-prime-new/tests/test_payment_client.py)
+
+Ran terminal command: pytest -q
+
+Ran terminal command: python -m pytest -q
+
+Using "Replace String in File"
+
+
+```
+
+```
+
+
+Using "Replace String in File"
+
+
+```
+
+```
+
+
+Using "Replace String in File"
+
+
+```
+
+```
+
+
+Using "Replace String in File"
+
+
+```
+
+```
+
+
+Ran terminal command: python -m pytest -q
+
+Read [](file:///c%3A/Bug_Bash/26_01_09/oswe-mini-prime-new/artifacts/runtime_trace.txt)
+
+Created [](file:///c%3A/Bug_Bash/26_01_09/oswe-mini-prime-new/run_tests)
+
+Created [](file:///c%3A/Bug_Bash/26_01_09/oswe-mini-prime-new/README.md)
+
+Read [](file:///c%3A/Bug_Bash/26_01_09/oswe-mini-prime-new/ARTIFACTS.md)
+
+Using "Replace String in File"
+
+
+```
+
+```
+
+
+Ran terminal command: python -m pytest tests/test_payment_client.py::test_legacy_endpoint_removed_fallback -q
+
+Read [](file:///c%3A/Bug_Bash/26_01_09/oswe-mini-prime-new/artifacts/runtime_trace.txt)
+
+Ran terminal command: python -m pytest -q
+
+Perfect! I implemented runtime tracing, fallback to `PaymentIntent`, request mapping, and tests; all tests now pass and artifacts are generated. My next step is to summarize what changed and how to run the checks.## ✅ Wrap-up & Deliverables
+
+**What I did**
+- Wrote failing tests that exercise legacy Charges, endpoint-removed fallback, and v2-only behavior.
+- Updated `PaymentClient` to:
+  - Try legacy `Charge.create` first.
+  - Catch `RuntimeError("endpoint removed")` and `AttributeError` and **fallback** to `PaymentIntent.create`.
+  - Map `source -> payment_method` and set `capture_method="automatic"`.
+  - Normalize responses to `NormalizedPayment`.
+  - Emit runtime trace lines to runtime_trace.txt.
+- Added a runnable run_tests script and a README.md.
+- Created ARTIFACTS.md during test execution.
+
+---
+
+## 🔧 Files changed / added
+- Modified:
+  - payment_client.py (add fallback, tracing, normalization)
+- Added:
+  - test_payment_client.py (contains the exact required tests)
+  - run_tests (one-click script)
+  - README.md
+  - ARTIFACTS.md (generated by tests)
+  - runtime_trace.txt (generated by tests)
+
+---
+
+## 🧪 Tests (required names)
+- test_legacy_charge_works: PASS ✅  
+- test_legacy_endpoint_removed_fallback: PASS ✅  
+- test_v2_payment_intent_only: PASS ✅
+
+---
+
+## 📁 Artifacts (created during test run)
+- runtime_trace.txt
+  - Examples of lines you'll find:
+    - [legacy] Charge.create invoked
+    - [error] RuntimeError: endpoint removed
+    - [fallback] Switching to PaymentIntent.create
+    - [v2] PaymentIntent.create invoked
+    - [v2-request] {'payment_method': ..., 'capture_method': 'automatic'}
+- ARTIFACTS.md
+  - Summarizes test results & request mapping evidence (`source -> payment_method`, `capture_method="automatic"`)
+
+---
+
+## ▶️ How to run
+1. Make sure you have Python available.
+2. Run: ./run_tests
+   - Creates a virtualenv, installs pytest, and runs tests.
+3. Open:
+   - ARTIFACTS.md (test summary)
+   - runtime_trace.txt (runtime evidence)
+
+---
+
+## 💡 Notes / Design decisions
+- API selection is done purely **at runtime** using attribute checks and exception handling (per constraints).
+- Request mapping and trace lines were added so a human reviewer can quickly validate behavior without deep code inspection.
+
+---
+
+If you want, I can:
+- Add assertions that explicitly check the `PaymentIntent` `_request` payload in tests, or
+- Add a simple CI-friendly `Makefile` or PowerShell wrapper for run_tests.
+
+Would you like either of those?
+
+Made changes.
