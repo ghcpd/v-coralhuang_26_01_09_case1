@@ -1,0 +1,11 @@
+[TEST] test_legacy_charge_works started
+[legacy] Charge.create invoked successfully
+[TEST] test_legacy_charge_works passed
+[TEST] test_legacy_endpoint_removed_fallback started
+[error] RuntimeError: endpoint removed
+[fallback] Switching to PaymentIntent.create
+[v2] PaymentIntent.create invoked
+[TEST] test_legacy_endpoint_removed_fallback passed
+[TEST] test_v2_payment_intent_only started
+[v2] PaymentIntent.create invoked directly
+[TEST] test_v2_payment_intent_only passed
