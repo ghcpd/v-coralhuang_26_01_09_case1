@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PY=python
+VENV=.venv_test
+
+echo "Creating virtual environment in $VENV"
+$PY -m venv "$VENV"
+# shellcheck disable=SC1091
+source "$VENV/bin/activate"
+
+echo "Installing test dependencies"
+python -m pip install -q --upgrade pip
+python -m pip install -q pytest
+
+echo "Running tests"
+python -m pytest -q || EXIT=$?
+
+if [ -n "${EXIT-}" ]; then
+  echo "pytest exited with $EXIT"
+  exit $EXIT
+fi
+
+echo "Tests passed. See ARTIFACTS.md and artifacts/runtime_trace.txt"
+exit 0
