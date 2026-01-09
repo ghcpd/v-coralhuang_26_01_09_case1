@@ -2,6 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
+import os
 
 
 @dataclass(frozen=True)
@@ -14,31 +15,56 @@ class NormalizedPayment:
 
 class PaymentClient:
     """
-    Baseline intentionally supports ONLY legacy Charges API.
+    Migrated to support both legacy and v2 APIs with fallback.
 
-    Agent should write tests and migrate this client to support both:
-      - legacy: sdk.Charge.create(amount, currency, source)
-      - v2:     sdk.PaymentIntent.create(amount, currency, payment_method, capture_method="automatic")
-
-    Additionally, legacy may fail at runtime with:
-      RuntimeError("endpoint removed")
-    simulating an outdated endpoint removed after an SDK/backend upgrade.
+    - Tries legacy Charge.create first.
+    - If Charge not available (AttributeError), uses PaymentIntent.
+    - If Charge raises RuntimeError("endpoint removed"), falls back to PaymentIntent.
     """
     def __init__(self, sdk: Any):
         self.sdk = sdk
 
     def pay(self, *, amount: int, currency: str, source: str) -> NormalizedPayment:
-        req: Dict[str, Any] = {
+        os.makedirs("artifacts", exist_ok=True)
+        with open("artifacts/runtime_trace.txt", "a") as f:
+            f.write("[legacy] Charge.create invoked\n")
+
+        req_charge: Dict[str, Any] = {
             "amount": amount,
             "currency": currency,
-            "source": source,  # legacy field
-            "_sdk": self.sdk,  # used by fake legacy to simulate endpoint removal by version
+            "source": source,
+            "_sdk": self.sdk,
         }
 
-        # This will fail for:
-        # - v2 SDK which has no Charge API
-        # - legacy SDK when endpoint removed for certain versions
-        resp = self.sdk.Charge.create(**req)
+        try:
+            resp = self.sdk.Charge.create(**req_charge)
+            with open("artifacts/runtime_trace.txt", "a") as f:
+                f.write("[success] Charge succeeded\n")
+        except AttributeError:
+            # No Charge API, use PaymentIntent
+            with open("artifacts/runtime_trace.txt", "a") as f:
+                f.write("[v2] PaymentIntent.create invoked\n")
+            req_pi = {
+                "amount": amount,
+                "currency": currency,
+                "payment_method": source,
+                "capture_method": "automatic",
+            }
+            resp = self.sdk.PaymentIntent.create(**req_pi)
+        except RuntimeError as e:
+            if "endpoint removed" in str(e):
+                with open("artifacts/runtime_trace.txt", "a") as f:
+                    f.write(f"[error] {type(e).__name__}: {e}\n")
+                    f.write("[fallback] Switching to PaymentIntent.create\n")
+                req_pi = {
+                    "amount": amount,
+                    "currency": currency,
+                    "payment_method": source,
+                    "capture_method": "automatic",
+                }
+                resp = self.sdk.PaymentIntent.create(**req_pi)
+            else:
+                raise
 
         return NormalizedPayment(
             id=resp["id"],
