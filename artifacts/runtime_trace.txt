@@ -1,0 +1,4 @@
+[legacy] Charge.create invoked
+[error] legacy Charge API not present
+[v2] PaymentIntent.create invoked
+[v2-request] {'amount': 300, 'currency': 'gbp', 'payment_method': 'tok_amex', 'capture_method': 'automatic'}
