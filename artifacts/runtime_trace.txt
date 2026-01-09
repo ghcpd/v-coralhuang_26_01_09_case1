@@ -1,0 +1,6 @@
+[legacy] Charge.create invoked
+[legacy] Charge.create invoked
+[error] RuntimeError: endpoint removed
+[fallback] Switching to PaymentIntent.create
+[v2] PaymentIntent.create invoked
+[v2] PaymentIntent.create invoked
