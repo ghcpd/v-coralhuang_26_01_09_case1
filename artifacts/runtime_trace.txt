@@ -1,0 +1,12 @@
+[legacy] Charge.create invoked
+[legacy] Charge.create returned id=ch_123
+[legacy] Charge.create invoked
+[error] RuntimeError: endpoint removed
+[fallback] Switching to PaymentIntent.create
+[v2] PaymentIntent.create invoked
+[v2] Using bundled StripeSDKv2.PaymentIntent shim
+[v2] PaymentIntent.create returned id=pi_456
+[legacy] Charge.create invoked
+[legacy-missing] Charge API not present, will use PaymentIntent
+[v2] PaymentIntent.create invoked
+[v2] PaymentIntent.create returned id=pi_456
