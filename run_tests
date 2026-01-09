@@ -1,0 +1,4 @@
+#!/usr/bin/env powershell
+# Run tests (Windows PowerShell compatible). Creates a venv, installs deps, runs pytest.
+$ErrorActionPreference = 'Stop'
+python -m venv .venv; . .\.venv\Scripts\Activate.ps1; python -m pip install -q --upgrade pip pytest; .\.venv\Scripts\python.exe -m pytest -q; Write-Host "\nArtifacts:"; Write-Host " - ARTIFACTS.md"; Write-Host " - artifacts/runtime_trace.txt"; exit $LASTEXITCODE
